@@ -74,6 +74,7 @@ Some of these are still being worked on and marked with `[WIP]`.
 # Documentation
 
 - [Docs](docs/)
+- [Windows support implementation research](docs/research/windows-support.md) (research only; native mounting is not yet implemented)
 
 [![rencfs](website/resources/layers.png)](website/resources/layers.png)
 
