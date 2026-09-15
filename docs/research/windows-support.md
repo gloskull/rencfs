@@ -1,9 +1,28 @@
 # Windows support implementation research
 
-> **Status: research only (2026-09-12).** rencfs does **not** mount a filesystem
+> **Status: research only (reviewed 2026-09-15).** rencfs does **not** mount a filesystem
 > on Windows today. The Windows build currently selects the dummy mount backend.
 > This note is an implementation contract for a first native Windows mount backend;
 > it is not a release promise or evidence of Windows runtime testing.
+
+## Current code boundary
+
+The research is deliberately separated from the code that exists today. This
+table is the baseline an implementation PR must change and validate rather than
+an indication that the items below already work on Windows.
+
+| Area | Current behavior | Implementation consequence |
+| --- | --- | --- |
+| Platform dispatch | [`src/mount.rs`](../../src/mount.rs) selects `linux` only for Linux and selects `dummy` for every other target, including Windows. | Add a Windows-specific dispatch branch without changing the public `MountPoint` API. |
+| Non-Linux mount backend | [`src/mount/dummy.rs`](../../src/mount/dummy.rs) returns `FsError::Other("Dummy implementation")` from `mount`. | Replace the Windows selection with a real backend; do not turn the dummy backend into a partial Windows implementation. |
+| Encryption and storage | The Linux adapter already builds on [`EncryptedFs`](../../src/encryptedfs.rs). | Keep WinFsp code as an adapter over the same layer, so encrypted-file and metadata behavior remain shared. |
+| Existing tests | Mount integration tests are Linux-specific (`tests/rencfs_linux_itest.rs`). | Add Windows unit coverage first, then a separate WinFsp-enabled integration job; do not represent cross-compilation as mount validation. |
+
+On the current tree, Windows users can build non-mount functionality, but a
+native mount request fails through the dummy backend. The Unix `umount` command
+is likewise not a Windows unmount mechanism. Until a Windows backend supplies
+its own lifecycle, the supported Windows workflow remains WSL as described in
+the project documentation.
 
 ## Decision
 
